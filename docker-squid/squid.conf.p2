@@ -37,7 +37,8 @@ ssl_bump none localhost
 #ssl_bump server-first bump_sites
 #ssl_bump client-first all
 #ssl_bump server-first all
-ssl_bump peek all
+#ssl_bump peek all
+ssl_bump stare
 
 
 #ssl_bump none all
