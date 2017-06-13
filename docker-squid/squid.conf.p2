@@ -7,8 +7,10 @@ cache_store_log stdio:/dev/stdout
 cache_log /dev/stderr
 netdb_filename stdio:/var/cache/squid4/netdb.state
 
-# Visible hostname to allow multi-squid
-visible_hostname {{VISIBLE_HOSTNAME|default:"docker-squid4"}}
+
+http_access allow all
+
+visible_hostname {{VISIBLE_HOSTNAME|default:"proxy.out.ba"}}
 
 {% if DISABLE_CACHE|default:"" != "yes" %}
 # Cache directory is fixed since we'll bind mount.
@@ -22,16 +24,24 @@ tls_outgoing_options capath=/etc/ssl/certs \
     options=NO_SSLv3,NO_TLSv1 \
     cipher=ALL:!RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS
 
-http_port {{HTTP_PORT}} {% if MITM_PROXY|default:"" == "yes" %} ssl-bump \
+http_port {{HTTP_PORT}} ssl-bump \
     generate-host-certificates=on \
     dynamic_cert_mem_cache_size=4MB \
     cert=/etc/squid4/ssl_cert/mitm.crt \
     key=/etc/squid4/ssl_cert/mitm.pem
-{% endif %}
 
-{% if MITM_PROXY|default:"" == "yes" %}
-ssl_bump server-first all
-{% endif %}
+
+
+acl bump_sites dstdomain .youtube.com .youtube.com.mx
+ssl_bump none localhost
+#ssl_bump server-first bump_sites
+#ssl_bump client-first all
+#ssl_bump server-first all
+ssl_bump peek all
+
+
+#ssl_bump none all
+tls_outgoing_options cafile=/etc/ssl/ca-certificates.crt
 
 {% if ICP_PORT|default:"" != "" %}
 icp_port {{ICP_PORT}}
